@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Mastery Quiz (Sets 1-8)</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; line-height: 1.5; }
+        .container { max-width: 750px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        
+        h1 { color: #0f172a; text-align: center; margin-bottom: 8px; font-size: 28px; font-weight: 800; }
+        .subtitle { text-align: center; color: #64748b; font-size: 15px; margin-bottom: 30px; }
+        
+        /* Setup screen */
+        #setup-screen { text-align: center; padding: 20px 0; }
+        #setup-screen input { padding: 12px 16px; font-size: 16px; width: 80%; max-width: 350px; border: 2px solid var(--border-color); border-radius: 8px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
+        #setup-screen input:focus { border-color: var(--primary); }
+        #start-btn { display: inline-block; background: var(--primary); color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        #start-btn:hover { background: var(--primary-hover); }
+
+        #quiz-app { display: none; }
+        
+        .score-banner { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 16px; text-align: center; font-size: 18px; font-weight: 700; border-radius: 12px; margin-bottom: 30px; position: sticky; top: 15px; z-index: 100; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); display: flex; justify-content: space-between; align-items: center; padding-left: 24px; padding-right: 24px; }
+        
+        .question-card { background: #ffffff; border: 2px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; transition: all 0.25s ease; }
+        .question-card.correct { border-color: #22c55e; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #ef4444; background-color: #fef2f2; }
+        
+        .question-title { font-weight: 700; font-size: 18px; margin-bottom: 16px; color: #0f172a; }
+        
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .options label { display: flex; align-items: center; padding: 12px 16px; background: #f8fafc; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 15px; font-weight: 500; }
+        .options label:hover:not(.disabled) { background: #f1f5f9; border-color: #cbd5e1; }
+        .options label.disabled { cursor: default; }
+        
+        .options label.correct-ans { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534; font-weight: 600; }
+        .options label.wrong-ans { background: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b; text-decoration: line-through; }
+        
+        .options input { margin-right: 12px; transform: scale(1.1); accent-color: var(--primary); }
+        
+        .feedback { margin-top: 14px; font-weight: 700; font-size: 15px; }
+
+        /* Completion Report Card */
+        #completion-card { display: none; background: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 30px; text-align: center; margin-top: 30px; }
+        #completion-card h2 { color: #1e3a8a; margin-top: 0; }
+        #completion-card p { font-size: 18px; font-weight: 600; color: #1e293b; }
+        
+        .action-btns { display: flex; gap: 12px; margin-top: 30px; }
+        .btn { flex: 1; background: #0f172a; color: white; border: none; padding: 16px; font-size: 16px; font-weight: 700; border-radius: 12px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); }
+        .btn:hover { background: #1e293b; }
+        .btn-secondary { background: #475569; }
+        .btn-secondary:hover { background: #334155; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Vocabulary Mastery Quiz</h1>
+    <div class="subtitle">Sets 1–8 • All 75 Words • Randomized Questions & Options</div>
+    
+    <!-- Student Setup Screen -->
+    <div id="setup-screen">
+        <p style="font-size: 16px; color: #475569; margin-bottom: 15px;">Please enter your full name before starting the quiz:</p>
+        <input type="text" id="student-name" placeholder="e.g., Alex Wong" autocomplete="off">
+        <br>
+        <button id="start-btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz App Screen -->
+    <div id="quiz-app">
+        <div class="score-banner" id="score-banner">
+            <span id="banner-name">Student</span>
+            <span id="banner-score">Score: 0 / 75 (0 answered)</span>
+        </div>
+        
+        <div id="quiz-container"></div>
+
+        <div id="completion-card">
+            <h2>🎉 Quiz Completed!</h2>
+            <p id="final-result-text"></p>
+            <p style="font-size: 14px; color: #64748b;">You can take a screenshot of this summary and send it to your tutor/teacher.</p>
+        </div>
+        
+        <div class="action-btns">
+            <button class="btn btn-secondary" onclick="location.reload()">🔄 Retake (Shuffle Again)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const rawQuizData = [
+    { q: "architecture (n.)", options: ["The style in which buildings or systems are made", "A set of mathematical instructions", "A government department", "A tall bell tower"], answer: 0 },
+    { q: "variety (n.)", options: ["An official count of a population", "Many different types of things", "A shared company profit", "A lack of enthusiasm"], answer: 1 },
+    { q: "entity (n.)", options: ["A work shift starting late at night", "Something that has a distinct, independent existence", "A system of methods used in study", "A group of people sharing a characteristic"], answer: 1 },
+    { q: "underlying (adj.)", options: ["Real but not immediately obvious", "Unable to read and write", "Existing as a permanent part", "Large in size or value"], answer: 0 },
+    { q: "sentiment (n.)", options: ["A financial certificate or bond", "A view or attitude towards a specific situation", "A general increase in prices", "A cosmetic surgical procedure"], answer: 1 },
+    { q: "profession (n.)", options: ["A job that needs special education and training", "An outdoor device telling time with shadows", "A student staying away from school", "A forceful strike with a fist"], answer: 0 },
+    { q: "inquiries (n.)", options: ["The process of asking questions to get information", "Deliberate steps to improve conditions", "Money received from family members", "Forms differing slightly from standard"], answer: 0 },
+    { q: "bias (n.)", options: ["The fact of favoring a particular thing or group unfairly", "A set of mathematical rules for solving problems", "A person who prepares and serves coffee", "An accepted standard behavior pattern"], answer: 0 },
+    { q: "computational (adj.)", options: ["Relating to office workers doing desk jobs", "Involving the calculation of answers using computers or math", "Causing severe damage or destruction", "Controlled by two or more genes"], answer: 1 },
+    { q: "algorithm (n.)", options: ["A set of mathematical instructions or rules for solving problems", "A share of company profits paid to shareholders", "A social and economic system built on manufacturing", "A general increase in prices over time"], answer: 0 },
+    { q: "Gen X (n.)", options: ["People born in the 1960s and 1970s", "People born around the turn of the millennium", "A group sharing a statistical characteristic", "A person born following WWII"], answer: 0 },
+    { q: "Baby Boomer (n.)", options: ["A scientist who studies genes", "A person born following the Second World War", "Someone who studies moral issues", "A student who skips school"], answer: 1 },
+    { q: "Millennials (n.)", options: ["People born around the turn of the millennium (around 2000)", "People born in the 1960s and 1970s", "Workers performing late-night shifts", "Scientists studying heredity"], answer: 0 },
+    { q: "barista (n.)", options: ["A person who prepares and serves coffee in a coffee shop", "A company that produces goods in large quantities", "A government department or administrative bureau", "An eyewitness to a crime or accident"], answer: 0 },
+    { q: "graveyard shift (n.)", options: ["A period when an economy is struggling", "A work shift that begins late at night and ends early in the morning", "A cosmetic procedure to remove fat", "A forceful strike delivered with a fist"], answer: 1 },
+    { q: "endure (v.)", options: ["To suffer something difficult, unpleasant, or painful", "To move or make progress more slowly", "To balance one influence against another", "To turn in circles like a mechanical clock"], answer: 0 },
+    { q: "lag (v.)", options: ["To move or make progress more slowly than others", "To suffer something difficult or painful", "To appear as a large, threatening shape", "To accumulate over time"], answer: 0 },
+    { q: "substantial (adj.)", options: ["Large in size, value, or importance", "Unable to read and write", "Existing as a natural, permanent part", "Designed to reduce air resistance"], answer: 0 },
+    { q: "offset (v.)", options: ["To suffer something difficult or painful", "To balance one influence against an opposing influence", "To turn in circles like a mechanical clock", "To enter a place where you are not welcome"], answer: 1 },
+    { q: "recession (n.)", options: ["A period when a country's economy is struggling and business is bad", "A general, continuous increase in prices over time", "An official count of a population", "A system of methods used in study"], answer: 0 },
+    { q: "wound (v.)", options: ["To turn or cause something to turn in circles", "To appear as a large, threatening shape", "To take someone away by force", "To inflict severe physical pain"], answer: 0 },
+    { q: "sundial (n.)", options: ["An outdoor device that tells the time using sunlight shadows", "A tall bell tower near a church", "A financial certificate traded on markets", "A share of company profits"], answer: 0 },
+    { q: "campanile (n.)", options: ["A tall bell tower, usually freestanding near a church", "An outdoor device telling time with shadows", "A government administrative department", "A group of people sharing a characteristic"], answer: 0 },
+    { q: "industrialism (n.)", options: ["A social and economic system built on manufacturing and industry", "A general increase in prices over time", "The process of asking questions to get information", "A set of mathematical rules"], answer: 0 },
+    { q: "white-collar (adj.)", options: ["Relating to office workers doing professional desk jobs", "Designed to reduce air resistance", "Controlled by two or more genes working together", "Existing as a permanent part of something"], answer: 0 },
+    { q: "securities (n.)", options: ["Financial certificates or bonds traded on markets", "Methods used in a particular area of study", "Unwanted fat deposits removed surgically", "Official government departments"], answer: 0 },
+    { q: "dividend (n.)", options: ["A share of company profits paid to shareholders", "An official count of a population", "A work shift beginning late at night", "A set of mathematical rules"], answer: 0 },
+    { q: "civil (adj.)", options: ["Polite and formal, or relating to ordinary citizens", "Unable to read and write", "Large in size, value, or importance", "Real but not immediately obvious"], answer: 0 },
+    { q: "illiterate (adj.)", options: ["Designed to reduce air resistance", "Controlled by two or more genes working together", "Unable to read and write", "Existing as a natural, permanent part of something"], answer: 2 },
+    { q: "loom (v.)", options: ["To appear as a large, threatening shape, or an event approaching soon", "To suffer something difficult, unpleasant, or painful", "To move or make progress more slowly", "To accumulate or increase over time"], answer: 0 },
+    { q: "inflation (n.)", options: ["A general, continuous increase in prices over time", "A period when a country's economy is struggling", "An official count of a population", "A system of methods used in study"], answer: 0 },
+    { q: "manufacturer (n.)", options: ["A company that produces goods in large quantities", "A person who prepares and serves coffee", "A government department or bureau", "An eyewitness to a crime"], answer: 0 },
+    { q: "price-sensitive (adj.)", options: ["Describing products whose sales are heavily influenced by cost", "Suffering severely from a lack of food", "Related to office workers doing desk jobs", "Having the same amount or value"], answer: 0 },
+    { q: "pinched (v.)", options: ["To take something without permission or pinch tightly", "To turn or cause something to turn in circles", "To balance one influence against another", "To enter a place where you are not welcome"], answer: 0 },
+    { q: "reformulate (v.)", options: ["To change a plan, recipe, or product formula", "To accumulate or increase over time", "To provide lodging or sufficient space", "To make a determined effort to deal with a problem"], answer: 0 },
+    { q: "equivalent (adj.)", options: ["Having the same amount, value, or purpose", "Able to take liquid in through the surface", "Designed to reduce air resistance", "Existing as a permanent part of something"], answer: 0 },
+    { q: "absorbent (adj.)", options: ["Able to take liquid in through the surface", "Designed to reduce air resistance", "Controlled by two or more genes", "Unable to read and write"], answer: 0 },
+    { q: "aerodynamic (adj.)", options: ["Designed to reduce air resistance and move efficiently", "Relating to office workers doing desk jobs", "Large in size, value, or importance", "Real but not immediately obvious"], answer: 0 },
+    { q: "census (n.)", options: ["An official count of a population", "A government department or administrative organization", "A share of company profits paid to shareholders", "A financial certificate traded on markets"], answer: 0 },
+    { q: "bureau (n.)", options: ["A government department or administrative organization", "An official count of a population", "A tall bell tower near a church", "An outdoor device telling time with shadows"], answer: 0 },
+    { q: "bioethicist (n.)", options: ["Someone who studies moral issues in biology and medicine", "A scientist who studies genes and heredity", "A person born following the Second World War", "A student who stays away from school"], answer: 0 },
+    { q: "geneticist (n.)", options: ["A scientist who studies genes and heredity", "Someone who studies moral issues in biology", "A person who prepares and serves coffee", "An eyewitness to a crime"], answer: 0 },
+    { q: "allay (v.)", options: ["To reduce fear, worry, or strong negative emotions", "To receive money or traits from family members", "To accumulate or increase over time", "To provide lodging or sufficient space"], answer: 0 },
+    { q: "inherit (v.)", options: ["To receive money or physical traits from family members", "To reduce fear, worry, or strong negative emotions", "To turn or cause something to turn in circles", "To use someone unfairly for personal benefit"], answer: 0 },
+    { q: "devastating (adj.)", options: ["Causing severe damage, destruction, or emotional shock", "Large in size, value, or importance", "Unable to read and write", "Designed to reduce air resistance"], answer: 0 },
+    { q: "variant (n.)", options: ["A form or version that differs slightly from standard types", "A group of people sharing a statistical characteristic", "A share of company profits paid to shareholders", "An official count of a population"], answer: 0 },
+    { q: "polygenic (adj.)", options: ["Controlled by two or more genes working together", "Designed to reduce air resistance", "Able to take liquid in through the surface", "Existing as a permanent part of something"], answer: 0 },
+    { q: "cohort (n.)", options: ["A group of people sharing a particular statistical characteristic", "A government department or bureau", "A tall bell tower near a church", "A set of mathematical instructions"], answer: 0 },
+    { q: "accrue (v.)", options: ["To accumulate or increase over period of time", "To reduce fear, worry, or strong negative emotions", "To balance one influence against another", "To provide lodging or sufficient space"], answer: 0 },
+    { q: "methodology (n.)", options: ["A system of methods used in a particular area of study", "A general, continuous increase in prices", "An official count of a population", "A social and economic system built on manufacturing"], answer: 0 },
+    { q: "multiplying (v.)", options: ["Increasing greatly in number or quantity", "To increase in size, volume, or amount", "To make a determined effort to deal with a problem", "To take someone away by force"], answer: 0 },
+    { q: "swell (v.)", options: ["To increase in size, volume, or amount", "Increasing greatly in number or quantity", "To reduce fear, worry, or strong negative emotions", "To accumulate or increase over time"], answer: 0 },
+    { q: "accommodate (v.)", options: ["To provide lodging or sufficient space for people", "To make a determined effort to deal with a problem", "To use someone unfairly for personal benefit", "To receive money or traits from family"], answer: 0 },
+    { q: "starved (adj.)", options: ["Suffering severely from a lack of food or essential resources", "Unable to read and write", "Large in size, value, or importance", "Existing as a natural, permanent part"], answer: 0 },
+    { q: "teased (v.)", options: ["Laughing at or made fun of unkindly by others", "To take something without permission", "To turn or cause to turn in circles", "To enter a place where you are not welcome"], answer: 0 },
+    { q: "emphasis (n.)", options: ["Special importance or attention given to something", "An official count of a population", "A system of methods used in a study", "A general, continuous increase in prices"], answer: 0 },
+    { q: "liposuction (n.)", options: ["A cosmetic surgical procedure to remove unwanted fat deposits", "An official government department or bureau", "A set of mathematical instructions or rules", "A tall bell tower near a church"], answer: 0 },
+    { q: "severity (n.)", options: ["The seriousness or intensity of something bad", "A lack of interest, enthusiasm, or concern", "Special importance or attention given to something", "A group of people sharing a characteristic"], answer: 0 },
+    { q: "tackle (v.)", options: ["To make a determined effort to deal with a difficult problem", "To provide lodging or sufficient space", "To accumulate or increase over time", "To reduce fear, worry, or strong emotions"], answer: 0 },
+    { q: "abduct (v.)", options: ["To take someone away illegally by force or threat", "To inflict severe physical or mental pain intentionally", "To accumulate or increase over a period of time", "To use someone or something unfairly"], answer: 0 },
+    { q: "torture (v.)", options: ["To inflict severe physical or mental pain intentionally", "To take someone away illegally by force", "To make a determined effort to deal with a problem", "To enter a place where you are not welcome"], answer: 0 },
+    { q: "truant (n.)", options: ["A student who stays away from school without permission", "A person who prepares and serves coffee", "A scientist who studies genes and heredity", "An eyewitness to a crime or accident"], answer: 0 },
+    { q: "witness (n.)", options: ["Someone who sees an event, crime, or accident take place", "A person born following the Second World War", "A worker performing late-night shifts", "Someone who studies moral issues"], answer: 0 },
+    { q: "punch (n.)", options: ["A forceful strike delivered with a closed fist", "A general, continuous increase in prices", "A share of company profits paid to shareholders", "An official count of a population"], answer: 0 },
+    { q: "positive action (n.)", options: ["Deliberate steps taken to improve opportunities or conditions", "A system of methods used in a study", "A cosmetic surgical procedure to remove fat", "A work shift beginning late at night"], answer: 0 },
+    { q: "inherent (adj.)", options: ["Existing as a natural, permanent part of something", "Unable to read and write", "Controlled by two or more genes working together", "Designed to reduce air resistance"], answer: 0 },
+    { q: "apathy (n.)", options: ["A lack of interest, enthusiasm, or concern", "The seriousness or intensity of something bad", "Special importance or attention given to something", "An accepted standard behavior pattern"], answer: 0 },
+    { q: "intrude (v.)", options: ["To enter a place or situation where you are not welcome", "To make a determined effort to deal with a problem", "To use someone or something unfairly", "To accumulate or increase over time"], answer: 0 },
+    { q: "exploit (v.)", options: ["To use someone or something unfairly for personal benefit", "To reduce fear, worry, or strong negative emotions", "To provide lodging or sufficient space", "To inflict severe physical or mental pain"], answer: 0 },
+    { q: "core (n.)", options: ["The central, most important part of something", "An official count of a population", "A group or set of twelve items", "An accepted standard behavior pattern"], answer: 0 },
+    { q: "dozen (n.)", options: ["A group or set of twelve items", "The central, most important part of something", "A tall bell tower near a church", "A financial certificate traded on markets"], answer: 0 },
+    { q: "consist (v.)", options: ["To be formed or made up of specific parts", "To accumulate or increase over a period of time", "To control or decisively influence how something happens", "To give someone official authority or freedom"], answer: 0 },
+    { q: "norm (n.)", options: ["An accepted standard or standard behavior pattern", "The central, most important part of something", "A group or set of twelve items", "A general, continuous increase in prices"], answer: 0 },
+    { q: "dictate (v.)", options: ["To control or decisively influence how something happens", "To be formed or made up of specific parts", "To give someone official authority or freedom", "To make a determined effort to deal with a problem"], answer: 0 },
+    { q: "empower (v.)", options: ["To give someone official authority or freedom to act", "To control or decisively influence how something happens", "To use someone or something unfairly", "To reduce fear, worry, or strong negative emotions"], answer: 0 }
+];
+
+let studentName = "";
+let score = 0;
+let answeredCount = 0;
+
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex != 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
+
+function startQuiz() {
+    let nameInput = document.getElementById('student-name').value.trim();
+    if (!nameInput) {
+        alert("Please enter your name to start the quiz.");
+        return;
+    }
+    studentName = nameInput;
+    document.getElementById('banner-name').textContent = studentName;
+    
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('quiz-app').style.display = 'block';
+
+    buildQuiz();
+}
+
+function buildQuiz() {
+    let randomizedData = shuffleArray([...rawQuizData]);
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+
+    randomizedData.forEach((item, qIdx) => {
+        let optionsWithMeta = item.options.map((optText, oIdx) => ({
+            text: optText,
+            isCorrect: oIdx === item.answer
+        }));
+        
+        shuffleArray(optionsWithMeta);
+        
+        let card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = `card-${qIdx}`;
+        
+        let html = `<div class="question-title">${qIdx + 1}. ${item.q}</div><div class="options" id="opts-${qIdx}">`;
+        optionsWithMeta.forEach((opt, oIdx) => {
+            let inputId = `q${qIdx}-o${oIdx}`;
+            html += `<label id="label-${inputId}"><input type="radio" name="q${qIdx}" id="${inputId}" value="${opt.isCorrect}" onchange="checkAnswer(${qIdx}, '${inputId}')"> ${String.fromCharCode(65 + oIdx)}) ${opt.text}</label>`;
+        });
+        html += `</div><div class="feedback" id="feedback-${qIdx}"></div>`;
+        card.innerHTML = html;
+        container.appendChild(card);
+    });
+}
+
+function checkAnswer(qIdx, inputId) {
+    let card = document.getElementById(`card-${qIdx}`);
+    let optsDiv = document.getElementById(`opts-${qIdx}`);
+    let feedback = document.getElementById(`feedback-${qIdx}`);
+    let radios = optsDiv.getElementsByTagName('input');
+    
+    let selectedRadio = document.getElementById(inputId);
+    let isCorrect = (selectedRadio.value === "true");
+
+    for (let r of radios) {
+        r.disabled = true;
+        let lbl = document.getElementById(`label-${r.id}`);
+        lbl.classList.add('disabled');
+        if (r.value === "true") {
+            lbl.classList.add('correct-ans');
+        } else if (r.checked) {
+            lbl.classList.add('wrong-ans');
+        }
+    }
+
+    if (isCorrect) {
+        score++;
+        card.className = "question-card correct";
+        feedback.style.color = "#166534";
+        feedback.innerHTML = "✅ Correct!";
+    } else {
+        card.className = "question-card incorrect";
+        feedback.style.color = "#991b1b";
+        feedback.innerHTML = "❌ Incorrect.";
+    }
+
+    answeredCount++;
+    document.getElementById('banner-score').textContent = `Score: ${score} / 75 (${answeredCount} answered)`;
+
+    if (answeredCount === 75) {
+        let completionCard = document.getElementById('completion-card');
+        let percentage = Math.round((score / 75) * 100);
+        document.getElementById('final-result-text').textContent = `${studentName}, you scored ${score} out of 75 (${percentage}%)!`;
+        completionCard.style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+}
+</script>
+</body>
+</html>
